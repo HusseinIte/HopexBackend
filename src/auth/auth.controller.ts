@@ -14,7 +14,7 @@ export class AuthController {
     return this.authService.registerWithRole(adminDto);
   }
 
-  @Post('auth/register/investor')
+  @Post('auth/register-investor')
   registerInvestor(@Body() dto: RegisterRoleDto) {
     const investorDto = { ...dto, role: UserRole.INVESTOR };
     return this.authService.registerWithRole(investorDto);

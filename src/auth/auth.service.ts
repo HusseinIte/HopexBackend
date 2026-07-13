@@ -38,7 +38,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isMatch = await bcrypt.compare(dto.password, (userWithPassword as any).passwordHash);
+    const isMatch = await bcrypt.compare(
+      dto.password,
+      (userWithPassword as any).passwordHash,
+    );
 
     if (!isMatch) {
       throw new UnauthorizedException('Invalid credentials');
@@ -50,14 +53,16 @@ export class AuthService {
       full_name: (userWithPassword as any).name,
       role: userWithPassword.role,
     };
-    console.log('payload:', payload);
     return {
-      access_token: this.jwtService.sign(payload),
+      success: true,
+      message: 'تم تسجيل الدخول بنجاح',
+      token: this.jwtService.sign(payload),
       user: {
-        id: userWithPassword.id,
-        full_name: (userWithPassword as any).name,
-        email: userWithPassword.email,
-        role: userWithPassword.role.toUpperCase(),
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        companyName: user.companyName,
       },
     };
   }
