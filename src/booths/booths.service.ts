@@ -20,29 +20,91 @@ export class BoothsService {
       return { message: 'المعطيات موجودة مسبقاً، تم تهيئة المعرض من قبل.' };
     }
 
-    const boothsToCreate: any[] = [];
-
-    for (let i = 1; i <= 12; i++) {
-      const row = i <= 6 ? 1 : 2;
-      const col = i <= 6 ? i : i - 6;
-
-      boothsToCreate.push({
-        boothId: `B${i}`,
+    // توزيع يدوي للأكشاك الـ 12 لتبدو كمعرض حقيقي بممرات ومساحات مختلفة
+    const boothsToCreate = [
+      // الجناح الأيمن (Right Wing) - 4 أكشاك متفرقة
+      {
+        boothId: 'B1',
         status: 'Available',
-        investorId: null,
-        position3D: {
-          x: (col - 3.5) * 6,
-          y: 0,
-          z: row === 1 ? -5 : 5,
-        },
-        companyDetails: {},
-      });
-    }
+        position3D: { x: -12, y: 0, z: 12 },
+        companyDetails: { category: 'Premium VIP' },
+      },
+      {
+        boothId: 'B2',
+        status: 'Available',
+        position3D: { x: -14, y: 0, z: 4 },
+        companyDetails: { category: 'Standard' },
+      },
+      {
+        boothId: 'B3',
+        status: 'Available',
+        position3D: { x: -10, y: 0, z: -4 },
+        companyDetails: { category: 'Standard' },
+      },
+      {
+        boothId: 'B4',
+        status: 'Available',
+        position3D: { x: -12, y: 0, z: -12 },
+        companyDetails: { category: 'VIP Booth' },
+      },
+
+      // الجناح الأيسر (Left Wing) - 4 أكشاك متفرقة
+      {
+        boothId: 'B5',
+        status: 'Available',
+        position3D: { x: 12, y: 0, z: 12 },
+        companyDetails: { category: 'Premium VIP' },
+      },
+      {
+        boothId: 'B6',
+        status: 'Available',
+        position3D: { x: 14, y: 0, z: 4 },
+        companyDetails: { category: 'Standard' },
+      },
+      {
+        boothId: 'B7',
+        status: 'Available',
+        position3D: { x: 10, y: 0, z: -4 },
+        companyDetails: { category: 'Standard' },
+      },
+      {
+        boothId: 'B8',
+        status: 'Available',
+        position3D: { x: 12, y: 0, z: -12 },
+        companyDetails: { category: 'VIP Booth' },
+      },
+
+      // منطقة المنتصف الخلفية (Center Core) حول المسرح الرئيسي
+      {
+        boothId: 'B9',
+        status: 'Available',
+        position3D: { x: -5, y: 0, z: 2 },
+        companyDetails: { category: 'Startup Zone' },
+      },
+      {
+        boothId: 'B10',
+        status: 'Available',
+        position3D: { x: 5, y: 0, z: 2 },
+        companyDetails: { category: 'Startup Zone' },
+      },
+      {
+        boothId: 'B11',
+        status: 'Available',
+        position3D: { x: -4, y: 0, z: -6 },
+        companyDetails: { category: 'Tech Zone' },
+      },
+      {
+        boothId: 'B12',
+        status: 'Available',
+        position3D: { x: 4, y: 0, z: -6 },
+        companyDetails: { category: 'Tech Zone' },
+      },
+    ];
 
     await this.boothModel.insertMany(boothsToCreate);
     return {
       success: true,
-      message: 'تم إنشاء وتهيئة الـ 12 كشكاً بنجاح في قاعدة البيانات!',
+      message: 'تم إعادة تخطيط وتوزيع المعرض هندسياً بنجاح!',
     };
   }
 
@@ -81,7 +143,7 @@ export class BoothsService {
     }
 
     // تحديث بيانات الكشك وحالته
-    booth.status = 'Reserved';
+    booth.status = 'Pending'; //   وضعه في حالة "قيد الانتظار" حتى يتم تأكيد الحجز
     booth.investorId = investorId as any;
 
     // تعطيل التحقق من الـ ESLint لهذا السطر الفضفاض آمن برمجياً هنا
@@ -99,6 +161,36 @@ export class BoothsService {
       success: true,
       message: `تم حجز الكشك ${boothId} بنجاح لشركة ${companyName}`,
       booth,
+    };
+  }
+
+  // دالة موافقة الأدمن على الحجز
+  async approveBooth(boothId: string) {
+    const booth = await this.boothModel.findOne({ boothId });
+    if (!booth) throw new NotFoundException('الكشك غير موجود');
+    if (booth.status !== 'Pending')
+      throw new BadRequestException('هذا الكشك ليس بانتظار الموافقة');
+
+    booth.status = 'Reserved'; // تحويله للون الأحمر المحجوز نهائياً
+    await booth.save();
+    return {
+      success: true,
+      message: `تمت الموافقة على حجز الكشك ${boothId} بنجاح`,
+    };
+  }
+
+  // دالة رفض الحجز وإعادة الكشك متاحاً
+  async rejectBooth(boothId: string) {
+    const booth = await this.boothModel.findOne({ boothId });
+    if (!booth) throw new NotFoundException('الكشك غير موجود');
+
+    booth.status = 'Available'; // تفريغ الكشك وإعادته للأخضر
+    booth.investorId = null as any;
+    booth.companyDetails = {};
+    await booth.save();
+    return {
+      success: true,
+      message: `تم رفض طلب الحجز وإعادة الكشك ${boothId} متاحاً للجميع`,
     };
   }
 } // تـأكد من وجود هذا القوس لإغلاق الكلاس بالكامل

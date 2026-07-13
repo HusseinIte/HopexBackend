@@ -25,4 +25,16 @@ export class BoothsController {
   ) {
     return this.boothsService.reserveBooth(boothId, investorData);
   }
+
+  // موافقة الأدمن: POST http://localhost:3000/booths/approve/B4
+  @Post('approve/:boothId')
+  async approveBooth(@Param('boothId') boothId: string) {
+    return this.boothsService.approveBooth(boothId);
+  }
+
+  // رفض الأدمن: POST http://localhost:3000/booths/reject/B4
+  @Post('reject/:boothId')
+  async rejectBooth(@Param('boothId') boothId: string) {
+    return this.boothsService.rejectBooth(boothId);
+  }
 }

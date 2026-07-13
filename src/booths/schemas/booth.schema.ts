@@ -22,10 +22,10 @@ export class Booth {
 
   @Prop({
     required: true,
-    enum: ['Available', 'Reserved'],
+    enum: ['Available', 'Pending', 'Reserved'],
     default: 'Available',
   })
-  status!: string; // حالة الكشك: متاح أو محجوز للمستثمر
+  status!: string; // الحالات تصبح: متاح، قيد الانتظار، محجوز نهائياً
 
   @Prop({ type: Types.ObjectId, ref: 'User', default: null })
   investorId!: Types.ObjectId; // معرف المستثمر الذي حجز الكشك (مرتبط بجدول الـ Users)
