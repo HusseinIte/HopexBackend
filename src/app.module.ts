@@ -6,7 +6,9 @@ import { BoothsModule } from './booths/booths.module'; // أضف هذا السط
 
 @Module({
   imports: [
-    MongooseModule.forRoot('mongodb://localhost:27017/expo2025_db'),
+    MongooseModule.forRoot(
+      process.env.MONGODB_URI || 'mongodb://localhost:27017/expo2025_db',
+    ),
     AuthModule,
     AttendanceModule,
     BoothsModule, // أضف الموديول هنا في المصفوفة
