@@ -6,10 +6,12 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 import { User, UserDocument } from './schemas/user.schema';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { UserRole } from '../enums/user-role.enum';
 
 @Injectable()
 export class UsersService {
@@ -24,12 +26,18 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
     const passwordHash = await bcrypt.hash(dto.password, 10);
-    const created = new this.userModel({ ...dto, passwordHash });
+    // توليد QR token فريد للموظف عند إنشائه
+    const staffQRToken = crypto.randomBytes(32).toString('hex');
+    const created = new this.userModel({ ...dto, passwordHash, staffQRToken });
     return created.save();
   }
 
   async findAll(): Promise<UserDocument[]> {
     return this.userModel.find().exec();
+  }
+
+  async findAllStaff(): Promise<UserDocument[]> {
+    return this.userModel.find({ role: UserRole.STAFF }).select('name email phone isInside staffQRToken isActive').exec();
   }
 
   async findById(id: string): Promise<UserDocument> {
@@ -42,6 +50,24 @@ export class UsersService {
 
   async findByEmail(email: string): Promise<UserDocument | null> {
     return this.userModel.findOne({ email }).exec();
+  }
+
+  async generateStaffQR(staffId: string): Promise<{ staffQRToken: string; message: string }> {
+    const staff = await this.userModel.findById(staffId).exec();
+    if (!staff) {
+      throw new NotFoundException(`Staff with id "${staffId}" not found`);
+    }
+    if (staff.role !== UserRole.STAFF) {
+      throw new ConflictException('User is not a staff member');
+    }
+    // توليد QR token جديد
+    const newToken = crypto.randomBytes(32).toString('hex');
+    staff.staffQRToken = newToken;
+    await staff.save();
+    return {
+      staffQRToken: newToken,
+      message: 'QR token generated successfully',
+    };
   }
 
   async update(id: string, dto: UpdateUserDto): Promise<UserDocument> {

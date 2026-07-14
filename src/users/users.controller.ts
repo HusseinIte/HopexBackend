@@ -25,9 +25,19 @@ export class UsersController {
     return this.usersService.findAll();
   }
 
+  @Get('staff')
+  async findAllStaff() {
+    return this.usersService.findAllStaff();
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string) {
     return this.usersService.findById(id);
+  }
+
+  @Post('staff/:id/generate-qr')
+  async generateStaffQR(@Param('id') id: string) {
+    return this.usersService.generateStaffQR(id);
   }
 
   @Patch(':id')
