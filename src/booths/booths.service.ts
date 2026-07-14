@@ -179,6 +179,38 @@ export class BoothsService {
     };
   }
 
+  // دالة تقييم كشك من قبل زائر (تقييم مجهول 1..5 نجوم)
+  // نُحدّث المجموع والعدد فقط، ونُعيد المعدّل الجديد ليظهر فوراً للزائر
+  // وليراه صاحب الكشك والأدمن لاحقاً عبر GET /booths.
+  async rateBooth(boothId: string, rating: number) {
+    const stars = Number(rating);
+    if (!Number.isFinite(stars) || stars < 1 || stars > 5) {
+      throw new BadRequestException('التقييم يجب أن يكون رقماً بين 1 و 5');
+    }
+
+    const booth = await this.boothModel.findOne({ boothId });
+    if (!booth) {
+      throw new NotFoundException(`الكشك رقم ${boothId} غير موجود`);
+    }
+
+    // تقريب لأقرب عدد صحيح لضمان تخزين نجوم صحيحة
+    const value = Math.round(stars);
+    booth.ratingSum = (booth.ratingSum || 0) + value;
+    booth.ratingCount = (booth.ratingCount || 0) + 1;
+    await booth.save();
+
+    const average = booth.ratingSum / booth.ratingCount;
+
+    return {
+      success: true,
+      message: `تم تسجيل تقييمك للكشك ${boothId} بنجاح`,
+      boothId,
+      ratingSum: booth.ratingSum,
+      ratingCount: booth.ratingCount,
+      average: Math.round(average * 10) / 10, // معدّل بمنزلة عشرية واحدة
+    };
+  }
+
   // دالة رفض الحجز وإعادة الكشك متاحاً
   async rejectBooth(boothId: string) {
     const booth = await this.boothModel.findOne({ boothId });

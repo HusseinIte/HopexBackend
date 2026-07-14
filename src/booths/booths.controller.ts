@@ -37,4 +37,14 @@ export class BoothsController {
   async rejectBooth(@Param('boothId') boothId: string) {
     return this.boothsService.rejectBooth(boothId);
   }
+
+  // تقييم الزائر لكشك: POST http://localhost:3000/booths/B4/rate  { "rating": 5 }
+  // عمومي (بدون تسجيل دخول) ليقيّم الزائر الكشك بعد زيارته.
+  @Post(':boothId/rate')
+  async rateBooth(
+    @Param('boothId') boothId: string,
+    @Body() body: { rating: number; comment?: string },
+  ) {
+    return this.boothsService.rateBooth(boothId, body?.rating);
+  }
 }

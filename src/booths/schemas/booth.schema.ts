@@ -44,6 +44,15 @@ export class Booth {
     default: {},
   })
   companyDetails!: Record<string, any>;
+
+  // ── تقييمات الزوّار (مجمّعة) ──────────────────────────────────────────────
+  // نخزّن مجموع النجوم وعدد التقييمات فقط؛ المعدّل = ratingSum / ratingCount.
+  // هكذا يرى صاحب الكشك (المستثمر) والأدمن مجموع تقييمات الزوّار ومعدّلها.
+  @Prop({ default: 0 })
+  ratingSum!: number; // مجموع كل النجوم التي منحها الزوّار
+
+  @Prop({ default: 0 })
+  ratingCount!: number; // عدد الزوّار الذين قيّموا هذا الكشك
 }
 
 export const BoothSchema = SchemaFactory.createForClass(Booth);
